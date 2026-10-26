@@ -27,12 +27,18 @@ if (!CLIENT_ID || !CLIENT_SECRET || !SESSION_SECRET) {
   )
 }
 
+
 app.disable('x-powered-by')
+
+// Render kör API:t bakom en proxy.
+app.set('trust proxy', 1)
 
 app.use(
   cors({
     origin: FRONTEND_URL,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 )
 
@@ -41,7 +47,7 @@ app.use(express.json({ limit: '2mb' }))
 app.use(
   session({
     name: 'dm.sid',
-    secret: SESSION_SECRET,
+    secret: SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
     cookie: {
