@@ -252,7 +252,11 @@ onBeforeUnmount(() => {
       <v-card-actions class="dialog-actions"><v-btn variant="text" @click="eventDialog = false">CANCEL</v-btn><v-spacer /><v-btn class="dialog-submit" @click="submitEvent">SAVE EVENT <v-icon end icon="mdi-arrow-up-right" /></v-btn></v-card-actions>
     </v-card></v-dialog>
 
-    <v-dialog v-model="selectedMedia" max-width="1080"><v-card v-if="selectedMedia" class="lightbox-card">
+<v-dialog
+  :model-value="selectedMedia !== null"
+  @update:model-value="(open) => { if (!open) selectedMedia = null }"
+  max-width="1080"
+><v-card v-if="selectedMedia" class="lightbox-card">
       <div class="lightbox-top"><span>{{ selectedMedia.category }} · {{ formatDate(selectedMedia.date) }}</span><v-btn icon="mdi-close" variant="text" aria-label="Close media viewer" @click="selectedMedia = null" /></div>
       <img v-if="selectedMedia.type === 'image'" :src="selectedMedia.url" :alt="selectedMedia.title" class="lightbox-image" />
       <video v-else-if="selectedMedia.url" :src="selectedMedia.url" controls autoplay class="lightbox-video"></video>
