@@ -73,6 +73,7 @@ const filteredMedia = computed(() => {
 const photoCount = computed(() => media.value.filter(x => x.type === 'image').length)
 const videoCount = computed(() => media.value.filter(x => x.type === 'video').length)
 const upcomingEvents = computed(() => events.value.filter(x => x.status === 'Upcoming').sort((a, b) => a.date.localeCompare(b.date)))
+const nextEvent = computed(() => upcomingEvents.value[0] ?? null)
 function notify(message: string) {
   toast.value = message; toastVisible.value = true
   if (toastTimer) clearTimeout(toastTimer)
@@ -102,7 +103,7 @@ function submitUpload() {
   selectedFiles.value.forEach((file, i) => media.value.unshift({
     id: nextId++, title: selectedFiles.value.length > 1 ? `${uploadTitle.value.trim()} ${i + 1}` : uploadTitle.value.trim(),
     description: uploadDescription.value.trim(), category: uploadCategory.value,
-    type: file.type.startsWith('video/') ? 'video' : 'image', url: uploadPreviews.value[i],
+    type: file.type.startsWith('video/') ? 'video' : 'image', url: uploadPreviews.value[i] ?? '',
     date: new Date().toISOString().slice(0, 10), author: props.userName, file,
   }))
   uploadDialog.value = false; uploadTitle.value = ''; uploadDescription.value = ''
@@ -203,10 +204,10 @@ onBeforeUnmount(() => {
         <div class="section-heading-row"><div><div class="section-label"><span>02</span><span class="section-label-line"></span> ON THE CALENDAR</div><h2 class="section-title">CLUB <span>EVENTS.</span></h2></div>
           <div class="events-heading-action"><p class="section-description">Meet-ups, rides and moments worth putting on the calendar.</p><button v-if="canUpload" class="outline-action" type="button" @click="openEventDialog"><v-icon icon="mdi-plus" size="18" /> ADD EVENT</button></div>
         </div>
-        <div v-if="upcomingEvents.length" class="featured-event">
+        <div v-if="nextEvent" class="featured-event">
           <div class="featured-event-mark"><v-icon icon="mdi-calendar-star" size="31" /></div>
-          <div class="featured-event-info"><span class="event-kicker">NEXT UP · CLUB CALENDAR</span><h3>{{ upcomingEvents[0].title }}</h3><p>{{ upcomingEvents[0].description }}</p><div class="event-location"><v-icon icon="mdi-map-marker-outline" size="17" /> {{ upcomingEvents[0].location }}</div></div>
-          <div class="featured-event-date"><span>{{ new Date(`${upcomingEvents[0].date}T12:00:00`).toLocaleDateString('en-GB', { month: 'short' }).toUpperCase() }}</span><strong>{{ new Date(`${upcomingEvents[0].date}T12:00:00`).getDate().toString().padStart(2, '0') }}</strong><small>{{ new Date(`${upcomingEvents[0].date}T12:00:00`).getFullYear() }}</small></div>
+          <div class="featured-event-info"><span class="event-kicker">NEXT UP · CLUB CALENDAR</span><h3>{{ nextEvent.title }}</h3><p>{{ nextEvent.description }}</p><div class="event-location"><v-icon icon="mdi-map-marker-outline" size="17" /> {{ nextEvent.location }}</div></div>
+          <div class="featured-event-date"><span>{{ new Date(`${nextEvent.date}T12:00:00`).toLocaleDateString('en-GB', { month: 'short' }).toUpperCase() }}</span><strong>{{ new Date(`${nextEvent.date}T12:00:00`).getDate().toString().padStart(2, '0') }}</strong><small>{{ new Date(`${nextEvent.date}T12:00:00`).getFullYear() }}</small></div>
         </div>
         <div v-if="events.length" class="event-list">
           <article v-for="event in events.slice().sort((a, b) => a.date.localeCompare(b.date))" :key="event.id" class="event-row">
@@ -252,11 +253,7 @@ onBeforeUnmount(() => {
       <v-card-actions class="dialog-actions"><v-btn variant="text" @click="eventDialog = false">CANCEL</v-btn><v-spacer /><v-btn class="dialog-submit" @click="submitEvent">SAVE EVENT <v-icon end icon="mdi-arrow-up-right" /></v-btn></v-card-actions>
     </v-card></v-dialog>
 
-<v-dialog
-  :model-value="selectedMedia !== null"
-  @update:model-value="(open) => { if (!open) selectedMedia = null }"
-  max-width="1080"
-><v-card v-if="selectedMedia" class="lightbox-card">
+    <v-dialog v-model="selectedMedia" max-width="1080"><v-card v-if="selectedMedia" class="lightbox-card">
       <div class="lightbox-top"><span>{{ selectedMedia.category }} · {{ formatDate(selectedMedia.date) }}</span><v-btn icon="mdi-close" variant="text" aria-label="Close media viewer" @click="selectedMedia = null" /></div>
       <img v-if="selectedMedia.type === 'image'" :src="selectedMedia.url" :alt="selectedMedia.title" class="lightbox-image" />
       <video v-else-if="selectedMedia.url" :src="selectedMedia.url" controls autoplay class="lightbox-video"></video>
